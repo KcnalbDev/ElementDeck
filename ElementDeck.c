@@ -1,9 +1,9 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
-#include<string.h> // Essencial para manipulaÁ„o de strings
+#include<string.h>
 
-// --- DefiniÁıes de Tipos ---
+// --- Defini√ß√µes de Tipos ---
 
 typedef enum
 {
@@ -31,7 +31,7 @@ typedef struct heroi
 
 } Heroi;
 
-// --- ImplementaÁ„o das FunÁıes ---
+// --- Implementa√ß√£o das Fun√ß√µes ---
 
 Heroi *createHeroi()
 {
@@ -54,15 +54,15 @@ void liberaHeroi(Heroi *heroi)
 {
   if (heroi == NULL)
     return;
-  free(heroi->nomeEspecial); // 1. Libera a string alocada por strdup
-  free(heroi);              // 2. Libera a estrutura
+  free(heroi->nomeEspecial);
+  free(heroi);
 }
 
 void liberaHerois(Heroi **herois,int tam)
 {
     for (int i=0;i<tam;i++)
         liberaHeroi(herois[i]);
-    free(herois); // Libera o vetor de ponteiros
+    free(herois);
 }
 
 int getRandInt(int min,int max)
@@ -73,17 +73,16 @@ int getRandInt(int min,int max)
 float especialGenerico(Heroi *ataque, Heroi *defesa)
  {
     printf("-> '%s' usou seu poder especial '%s' (Bonus: 5.0)!\n", ataque->nome, ataque->nomeEspecial);
-    return 5.0; // Dano bÙnus
+    return 5.0;
 }
 
 void inicializaHeroi(Heroi *h, char *nome, int hp, int mp, int forca, Elemento afinidade, Elemento fraqueza, float percAfinidade, float (*especial)(Heroi *, Heroi *), char *nomeEspecial)
 {
     if (h == NULL) return;
 
-    // USANDO <string.h>: Copia o nome de forma segura
+    
     strncpy(h->nome, nome, 49);
     h->nome[49] = '\0';
-
     h->HP = hp; h->HP_MAX = hp;
     h->MP = mp; h->MP_MAX = mp;
     h->forca = forca;
@@ -91,8 +90,6 @@ void inicializaHeroi(Heroi *h, char *nome, int hp, int mp, int forca, Elemento a
     h->fraqueza = fraqueza;
     h->percAfinidade = percAfinidade;
     h->especial = especial;
-
-    // USANDO <string.h>: Aloca dinamicamente e copia o nome especial
     h->nomeEspecial = strdup(nomeEspecial);
     if (h->nomeEspecial == NULL) exit(EXIT_FAILURE);
 }
@@ -115,7 +112,6 @@ void imprimirHerois(Heroi **herois, int tam)
 
 int comparaNome(Heroi *a,Heroi *b)
 {
-    // USANDO <string.h>: Compara os nomes
     return strcmp(a->nome,b->nome);
 }
 
@@ -169,51 +165,40 @@ void applyDamage(Heroi *ataque,Heroi *defesa)
 {
     if (ataque->MP == 0 || ataque->afinidade==SemAfinidade)
     {
-        // Ataque FÌsico Puro
         int dano = ataque->forca;
         int novo_hp = defesa->HP - dano;
 
         if (novo_hp >= 0)
         {
             defesa->HP = novo_hp;
-
         }
         else
         {
             defesa->HP = 0;
         }
-        /*
-        USO DE OPERADOR TERNARIO
-        defesa->HP = (defesa->HP - ataque->forca) >= 0 ? (defesa->HP - ataque->forca) : 0;
-        */
-
     }
     else
     {
-        // Ataque M·gico
         float danoBase = 0;
         float danoEspecial = 1.0;
 
         if (getRandInt(0,9)==0)
-        { // 10% de chance de Especial
+        {
             danoEspecial += ataque->especial(ataque,defesa);
             printf("-> '%s' aplicou especial\n",ataque->nome);
         }
 
-        // Desconto de MP (10% a 20% do MP_MAX)
         int descMP = (int)(ataque->MP_MAX * (getRandInt(10,20)/100.0));
         ataque->MP = (ataque->MP - descMP) >= 0 ? (ataque->MP - descMP) : 0;
 
-        danoBase += ataque->forca; // Dano base È a forÁa
-        danoBase *= 1 + (ataque->percAfinidade/100.0); // BÙnus de Afinidade
+        danoBase += ataque->forca;
+        danoBase *= 1 + (ataque->percAfinidade/100.0);
 
-        // BÙnus de Fraqueza
         if (ataque->afinidade==defesa->fraqueza || defesa->fraqueza==SemAfinidade){
             danoBase *= 1.3;
         }
-        danoBase *= danoEspecial; // Multiplica pelo bÙnus do Especial
+        danoBase *= danoEspecial;
 
-        // Aplica o dano (garantindo HP >= 0)
         defesa->HP = (defesa->HP - (int)danoBase) >= 0 ? (defesa->HP - (int)danoBase) : 0;
     }
     printf("'%s'[HP:%i,MP:%i] atacou '%s'[HP:%i,MP:%i]\n",
@@ -272,7 +257,7 @@ void curarHerois(Heroi **herois, int tam)
         herois[i]->HP = herois[i]->HP_MAX;
         herois[i]->MP = herois[i]->MP_MAX;
     }
-    printf("\nTodos os herÛis foram curados (HP e MP restaurados).\n");
+    printf("\nTodos os her√≥is foram curados (HP e MP restaurados).\n");
 }
 
 
@@ -283,7 +268,6 @@ int main()
     Heroi **herois = NULL;
     int opcao;
 
-    // --- SETUP: ALOCA«√O E DEFINI«√O DOS HER”IS FIXOS ---
     herois = getListaHerois(TAM_HEROIS);
 
     inicializaHeroi(herois[0], "Kai (Fogo)", 100, 50, 15, Fogo, Agua, 30.0, especialGenerico, "Inferno Flamejante");
@@ -306,15 +290,6 @@ int main()
 
     while (opcao != 0)
     {
-        /*if ( opcao != 1)
-        {
-            // Limpa buffer em caso de entrada n„o numÈrica
-            int c;
-            while ((c = getchar()) != '\n' && c != EOF);
-            opcao = -1;
-            continue;
-        }*/
-
         switch (opcao)
         {
              case 0:
@@ -336,15 +311,12 @@ int main()
 
                 if (indexA > 0 && indexA <= TAM_HEROIS && indexB > 0 && indexB <= TAM_HEROIS && indexA != indexB)
                     {
-
-                        // Assegura que o Ìndice na lista de herÛis (0-base) seja correto
                         Heroi *h1 = herois[indexA - 1];
                         Heroi *h2 = herois[indexB - 1];
 
-                        // Importante: Curar antes de batalhar para garantir que o HP seja MAX
                         if (h1->HP < h1->HP_MAX || h2->HP < h2->HP_MAX)
                         {
-                            printf("HerÛis est„o feridos. Curando antes da batalha...\n");
+                            printf("Her√≥is est√£o feridos. Curando antes da batalha...\n");
                             curarHerois(herois, TAM_HEROIS);
                         }
 
@@ -355,7 +327,7 @@ int main()
                     }
                     else
                     {
-                        printf("SeleÁ„o inv·lida.\n");
+                        printf("Sele√ß√£o inv√°lida.\n");
                     }
                 break;
             }
@@ -377,18 +349,18 @@ int main()
 
                     if (tamH > 0)
                     {
-                        printf("\n-> HerÛis de Afinidade %d encontrados:\n", elemBusca);
+                        printf("\n-> Her√≥is de Afinidade %d encontrados:\n", elemBusca);
                         imprimirHerois(elemHerois, tamH);
                         free(elemHerois);
                     }
                     else
                     {
-                        printf("Nenhum herÛi encontrado com essa afinidade.\n");
+                        printf("Nenhum her√≥i encontrado com essa afinidade.\n");
                     }
                 }
                 else
                 {
-                    printf("Elemento inv·lido.\n");
+                    printf("Elemento inv√°lido.\n");
                 }
                 break;
             }
@@ -398,7 +370,7 @@ int main()
                 break;
 
             default:
-                printf("OpÁ„o inv·lida.\n");
+                printf("Op√ß√£o inv√°lida.\n");
         }
         printf("\n");
         printf("0. Sair e Liberar Memoria\n");
@@ -412,7 +384,7 @@ int main()
         printf("\n");
     }
 
-    // --- CLEANUP ---
+    // --- LIBERA√á√ÉO DE MEM√ìRIA ---
     liberaHerois(herois, TAM_HEROIS);
     printf("Memoria liberada com sucesso.\n");
 
